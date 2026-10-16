@@ -1,0 +1,51 @@
+﻿  A subdirectory or file x64\Release\ already exists.
+  ld.lld: C:\OpenOrbis\PS4Toolchain\link.x
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libc.a
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libkernel.so
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libc++.a
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libSceUserService.so
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libSceVideoOut.so
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libSceAudioOut.so
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libScePad.so
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libSceSysmodule.so
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libSceFreeType.so
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libSDL2.a
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libSDL2_image.a
+  ld.lld: C:\OpenOrbis\PS4Toolchain\lib\crt1.o
+  ld.lld: .\x64\Release\\\graphics.o
+  ld.lld: .\x64\Release\\\main.o
+  ld.lld: .\x64\Release\\\png.o
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libpthread.a
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libpthread.a
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libpthread.a
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libpthread.a
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libpthread.a
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libpthread.a
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libpthread.a
+  ld.lld: C:\OpenOrbis\PS4Toolchain\\lib\libpthread.a
+          1 file(s) copied.
+  APP_TYPE : Integer(4/4) = 0x00000001
+  APP_VER : Utf8(5/8) = 1.03
+  ATTRIBUTE : Integer(4/4) = 0x00000000
+  CATEGORY : Utf8(3/4) = gd
+  CONTENT_ID : Utf8(37/48) = IV0000-BREW00090_00-DA3MIRROR0000000
+  DOWNLOAD_DATA_SIZE : Integer(4/4) = 0x00000000
+  SYSTEM_VER : Integer(4/4) = 0x00000000
+  TITLE : Utf8(21/128) = Da3 Screen Mirroring
+  TITLE_ID : Utf8(10/12) = BREW00090
+  VERSION : Utf8(5/8) = 1.03
+  Preparing inner PFS...
+   [innerpfs] Setting up filesystem structure...
+   [innerpfs] Creating inodes (9 dirs and 6 files)...
+   [innerpfs] Calculating data block layout...
+  Preparing outer PFS...
+   [outerpfs] Setting up filesystem structure...
+   [outerpfs] Creating inodes (0 dirs and 1 files)...
+   [outerpfs] Calculating data block layout...
+  Preparing PKG header and body...
+   [outerpfs] Writing data...
+   [innerpfs] Writing data...
+   [outerpfs] Signing in parallel...
+   [outerpfs] Encrypting in parallel...
+  Calculating PlayGo digests in parallel...
+  Calculating SHA256 of finished outer PFS...
