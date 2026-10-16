@@ -120,4 +120,4 @@ This is an independent, community homebrew project. It is not affiliated with, e
 
 ## License
 
-Add your license here (for example MIT) and include a matching `LICENSE` file in the repository.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
