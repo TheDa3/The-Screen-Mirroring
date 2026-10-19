@@ -2,9 +2,9 @@ SETLOCAL EnableDelayedExpansion
 
 Rem Package information
 set PKG_TITLE="The Screen Mirroring"
-set PKG_VERSION="1.03"
+set PKG_VERSION="1.2"
 set PKG_ASSETS="assets"
-set PKG_TITLE_ID="BREW00090"
+set PKG_TITLE_ID="DA300010"
 set PKG_CONTENT_ID="IV0000-BREW00090_00-DA3MIRROR0000000"
 
 Rem Libraries to link in
