@@ -1,7 +1,7 @@
 # Package metadata.
 TITLE       := The Screen Mirroring
 VERSION     := 1.2
-TITLE_ID    := DA300010
+TITLE_ID    := BREW00090
 CONTENT_ID  := IV0000-BREW00090_00-DA3MIRROR0000000
 
 # Libraries linked into the ELF.
