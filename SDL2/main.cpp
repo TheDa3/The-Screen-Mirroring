@@ -31,13 +31,6 @@
 #include "../../_common/log.h"
 #include "ui_embedded.h"
 
-// ---------------------------------------------------------------------------
-// Thread-safe CACHING allocator for stb_image.
-// The JPEG decoder runs on several threads and allocates/frees a few MB per tile for EVERY frame.
-// Plain malloc/free hammered from many threads is risky on this libc (heap corruption / fragmentation,
-// crash after a few seconds), so freed blocks are kept and reused instead of being returned.
-// Pooling is switched on only after startup (g_poolOn) so the startup image decoding is not cached.
-// ---------------------------------------------------------------------------
 #define POOL_SLOTS 128
 struct PoolBlock { void* p; size_t size; bool used; };
 static PoolBlock g_pool[POOL_SLOTS];
@@ -107,8 +100,9 @@ static void* poolRealloc(void* p, size_t oldsz, size_t newsz)
 #define AUDIO_PORT      9002
 #define FRAME_WIDTH     1920
 #define FRAME_HEIGHT    1080
-#define MAX_W           1920
-#define MAX_H           1088
+#define MAX_W           1920                 // largest accepted source picture (a phone in portrait is up to 1920 tall)
+#define MAX_H           1920
+#define BUF_H           1088                 // the 1920x1080 output buffers only need this many rows
 #define MAX_TILES       6
 #define MAX_TILE_BYTES  (1024 * 1024)
 #define DECODE_WORKERS  4
@@ -241,7 +235,7 @@ static void drawImg(const Img& i, int x, int y, int alpha = 255)
 static void drawImgC(const Img& i, int cx, int y, int alpha = 255) { drawImg(i, cx - i.w / 2, y, alpha); }
 
 static Img iHeader, iCard[3][2], iHintMenu, iHintBack, iHintStream, iHintOpt, iDigits, iIpPanel, iFpsBg;
-static Img iWaitTitle, iConnTitle, iOptTitle, iRow[3][2], iSwOn, iSwOff, iDot, iMsg[2];
+static Img iWaitTitle, iWaitTitleAndroid, iConnTitle, iOptTitle, iRow[3][2], iSwOn, iSwOff, iDot, iMsg[2];
 
 static void loadAll()
 {
@@ -264,6 +258,7 @@ static void loadAll()
     iIpPanel = loadImg("ip_panel.png");
     iFpsBg = loadImg("fps_bg.png");
     iWaitTitle = loadImg("wait_title.png");
+    iWaitTitleAndroid = loadImg("wait_title_android.png");     // "Waiting for Android" (falls back to the PC one if missing)
     iConnTitle = loadImg("conn_title.png");
     iOptTitle = loadImg("opt_title.png");
     iSwOn = loadImg("sw_on.png");
@@ -392,6 +387,7 @@ static volatile bool     g_streaming = false;    // true while a PC is connected
 static volatile bool     g_stopStream = false;   // main thread asks to drop the connection
 static volatile bool     g_soundOn = true;
 static volatile bool     g_keepAspect = false;   // mirrors the "keep aspect" option (read by the decoder thread)
+static volatile bool     g_androidMode = false;  // true when the user picked the Android card: always keep aspect
 static volatile bool     g_geomValid = false;    // set to false on every new connection
 static volatile uint32_t g_framesDecoded = 0;
 
@@ -438,7 +434,7 @@ static uint16_t g_xmap[FRAME_WIDTH];            // destination column -> source 
 
 static void setupGeometry(int fw, int fh)
 {
-    bool keep = g_keepAspect;
+    bool keep = g_keepAspect || g_androidMode;      // phones (portrait / 20:9 landscape) must never be stretched
     if (g_geomValid && fw == g_srcW && fh == g_srcH && keep == g_geomKeep) return;
 
     int dw = FRAME_WIDTH, dh = FRAME_HEIGHT;
@@ -631,6 +627,8 @@ static void* tcpThread(void*)
         struct timeval tv;
         tv.tv_sec = 0; tv.tv_usec = 200000;
         setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+        int rcvbuf = 512 * 1024;                                  // room for Wi-Fi bursts from the phone
+        setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, sizeof(rcvbuf));
 
         // make sure the decoder is idle before a new connection starts
         pthread_mutex_lock(&g_boxMtx);
@@ -789,7 +787,7 @@ static bool netInit()
     if (bind(g_udp, (struct sockaddr*)&a, sizeof(a)) != 0) { TLOG("UDP bind failed: " << strerror(errno)); return false; }
 
     // frame buffers + tile buffers (checked: a failed malloc must not crash later)
-    size_t bytes = (size_t)MAX_W * MAX_H * 4;
+    size_t bytes = (size_t)FRAME_WIDTH * BUF_H * 4;
     g_decodeBuf = (uint32_t*)malloc(bytes);
     g_readyBuf = (uint32_t*)malloc(bytes);
     if (!g_decodeBuf || !g_readyBuf) { TLOG("OUT OF MEMORY (frame buffers)"); return false; }
@@ -844,7 +842,7 @@ enum UiState { ST_MENU, ST_OPTIONS, ST_WAIT, ST_STREAM };
 static UiState state = ST_MENU;
 static int  menuSel = 0, optSel = 0;
 static bool optShowFps = false, optKeepAspect = false, optSound = true;
-static int  devMsg = -1;               // 0 = android, 1 = ios
+static int  devMsg = -1;               // index into iMsg (1 = ios, 0 = old android message, unused now)
 static uint32_t devMsgStart = 0;
 static char localIp[32] = "unknown";
 static char clientIp[32] = "";
@@ -895,7 +893,7 @@ static void drawWait(uint32_t now)
 {
     drawBackground();
     drawSpinner(FRAME_WIDTH / 2, 255, now, 120, 190, 255);
-    drawImg(iWaitTitle, 260, 350);
+    drawImg((g_androidMode && iWaitTitleAndroid.t) ? iWaitTitleAndroid : iWaitTitle, 260, 350);
     drawImg(iIpPanel, 610, 640);
     drawDigitsC(localIp, FRAME_WIDTH / 2, 640 + 52, 1.0f);
     drawImgC(iHintBack, FRAME_WIDTH / 2, 958 - iHintBack.h / 2);
@@ -979,13 +977,14 @@ int main(int argc, char* args[])
             if (in.back) running = false;
             if (in.ok)
             {
-                if (menuSel == 0)
+                if (menuSel <= 1)                                   // 0 = PC, 1 = Android: same receiver
                 {
+                    g_androidMode = (menuSel == 1);
                     detectLocalIp(localIp, sizeof(localIp));
                     g_wantConn = true;
                     state = ST_WAIT;
                 }
-                else { devMsg = menuSel - 1; devMsgStart = now; }
+                else { devMsg = 1; devMsgStart = now; }             // iOS: still "coming soon"
             }
             drawMenu(now);
             break;
