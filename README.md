@@ -21,7 +21,7 @@ Ready-to-use files are available in the **[Releases](../../releases)** section.
 |---|---|---|
 | `*.pkg` | PS4 | Homebrew receiver app |
 | `*.exe` | Windows | Sender application; no installation required |
-| Android app | Android | Sender application for Android devices |
+| `*.apk` | Android | Sender application for Android devices |
 
 * iOS support is coming soon.
 
